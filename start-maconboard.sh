@@ -6,11 +6,9 @@ DIALOG_BIN="/usr/local/bin/dialog"  # Set this to the path where SwiftDialog is 
 PKG_PATH="/var/tmp/dialog.pkg"
 PKG_URL="https://github.com/swiftDialog/swiftDialog/releases/download/v2.5.2/dialog-2.5.2-4777.pkg"
 TITLE="BBRZ Gruppe MacOs Onboarding"
-PREFIX="MAC"
+PREFIX="mac"
 WIFI_MAC=$(networksetup -getmacaddress en0 | awk '{print $3}' | sed 's/://g')
-# Capitalize the letters
-WIFI_MAC=$(echo "$WIFI_MAC" | tr '[:lower:]' '[:upper:]')
-NEW_NAME="${PREFIX}-${WIFI_MAC}"
+NEW_NAME="${PREFIX}${WIFI_MAC}"
 
 function ensure_sudo() {
     if [ "$EUID" -ne 0 ]; then
@@ -72,8 +70,7 @@ function rename_mac() {
 }
 
 function show_company_portal_dialog() {
-    message="Das Company Portal wird installiert und gestartet.
-    <br> Melden Sie sich im Company Portal an und folgen Sie den Anweisungen."
+    message="Das Company Portal wird installiert."
 
     $DIALOG_BIN --title "$TITLE" \
         --message "$message" \
@@ -97,9 +94,31 @@ function show_company_portal_dialog() {
     killall Dialog
 }
 
+function show_restart_dialog() {
+    message="Sie müssen den Mac neu starten.
+    <br> Klicken Sie auf 'Neu starten' um den Mac neu zu starten.
+    <br> Bitte starten Sie nach dem Neustart das Company Portal."
+
+    $DIALOG_BIN --title "$TITLE" \
+        --message "$message" \
+        --messagefont "name=Arial,size=15" \
+        --small \
+        --button1text "Neu starten" \
+        --button2text "Abbrechen"
+
+    if [ "$?" -ne 0 ]; then
+        echo "Abbruch"
+        exit 1
+    fi
+
+    sudo shutdown -r now
+    exit 0
+}
+
 ensure_sudo
 ensure_dialog
 show_rename_mac_dialog
+rename_mac $NEW_NAME
 show_company_portal_dialog
-
-open -a "/Applications/Company Portal.app"
+show_restart_dialog
+    
