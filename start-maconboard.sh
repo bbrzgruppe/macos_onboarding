@@ -5,7 +5,7 @@ set -e
 DIALOG_BIN="/usr/local/bin/dialog"  # Set this to the path where SwiftDialog is expected to be installed
 PKG_PATH="/var/tmp/dialog.pkg"
 PKG_URL="https://github.com/swiftDialog/swiftDialog/releases/download/v2.5.2/dialog-2.5.2-4777.pkg"
-TITLE="BBRZ Gruppe MacOs Onboarding"
+TITLE="BBRZ Gruppe MacOS Onboarding"
 PREFIX="mac"
 WIFI_MAC=$(networksetup -getmacaddress en0 | awk '{print $3}' | sed 's/://g')
 NEW_NAME="${PREFIX}${WIFI_MAC}"
@@ -33,6 +33,47 @@ function ensure_dialog() {
     fi
 }
 
+function get_LocalHostName() {
+    echo "$(scutil --get LocalHostName)"
+}
+function get_HostName() {
+    echo "$(scutil --get HostName)"
+}
+function get_ComputerName() {
+    echo "$(scutil --get ComputerName)"
+}
+
+function needs_rename() {
+    new_name=$1
+    LocalHostName=$(get_LocalHostName)
+    HostName=$(get_HostName)
+    ComputerName=$(get_ComputerName)
+
+    if [ "$LocalHostName" != "$new_name" ] || [ "$HostName" != "$new_name" ] || [ "$ComputerName" != "$new_name" ]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+function rename_mac() {
+    new_name=$1
+    LocalHostName=$(get_LocalHostName)
+    HostName=$(get_HostName)
+    ComputerName=$(get_ComputerName)
+
+    if [ "$LocalHostName" != "$new_name" ]; then
+        sudo scutil --set LocalHostName $new_name
+    fi
+    if [ "$HostName" != "$new_name" ]; then
+        sudo scutil --set HostName $new_name
+    fi
+    if [ "$ComputerName" != "$new_name" ]; then
+        sudo scutil --set ComputerName $new_name
+    fi
+}
+
+
 function show_rename_mac_dialog() {
     message="Für das Onboarding muss ihr Mac auf einen eindeutigen Namen umbenannt werden. 
     <br> Der neue Name ihres Macs lautet: $NEW_NAME.
@@ -49,23 +90,6 @@ function show_rename_mac_dialog() {
     if [ "$?" -ne 0 ]; then
         echo "Abbruch"
         exit 1
-    fi
-}
-
-function rename_mac() {
-    new_name=$1
-    LocalHostName=$(scutil --get LocalHostName)
-    HostName=$(scutil --get HostName)
-    ComputerName=$(scutil --get ComputerName)
-
-    if [ "$LocalHostName" != "$new_name" ]; then
-        sudo scutil --set LocalHostName $new_name
-    fi
-    if [ "$HostName" != "$new_name" ]; then
-        sudo scutil --set HostName $new_name
-    fi
-    if [ "$ComputerName" != "$new_name" ]; then
-        sudo scutil --set ComputerName $new_name
     fi
 }
 
@@ -117,8 +141,16 @@ function show_restart_dialog() {
 
 ensure_sudo
 ensure_dialog
-show_rename_mac_dialog
-rename_mac $NEW_NAME
-show_company_portal_dialog
-show_restart_dialog
+
+if [ "$(needs_rename $NEW_NAME)" = "true" ]; then
+    show_rename_mac_dialog
+    rename_mac $NEW_NAME
+    show_company_portal_dialog
+    show_restart_dialog
+else
+    show_company_portal_dialog
+    open -a "/Applications/Company Portal.app" &
+fi
+
+exit 0
     
