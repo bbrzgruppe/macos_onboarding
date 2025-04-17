@@ -81,8 +81,7 @@ while IFS= read -r line; do
           | openssl x509 -noout -subject -fingerprint \
           | awk '{print $1" "$2}' \
           | tr -d ':' \
-          | sed 's/DC=local\/DC=root\/CN=//' \
-          | sed 's/subject= \/CN=//' \
+          | sed 's/subject=CN=//' \
           | sed 's/Fingerprint=//' \
           | tr -d '\n')
           certs_todelete+=("$formated_cert")
