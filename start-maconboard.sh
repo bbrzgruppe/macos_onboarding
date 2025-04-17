@@ -100,6 +100,7 @@ function show_company_portal_dialog() {
         --message "$message" \
         --messagefont "name=Arial,size=15" \
         --small \
+        --icon computer \
         --button1disabled \
         --icon computer &
     sleep 2
@@ -127,6 +128,7 @@ function show_restart_dialog() {
         --message "$message" \
         --messagefont "name=Arial,size=15" \
         --small \
+        --icon computer \
         --button1text "Neu starten" \
         --button2text "Abbrechen"
 

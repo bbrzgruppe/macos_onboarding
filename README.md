@@ -5,3 +5,9 @@ Um den Onboarding Prozess zu starten starten Sie bitte das Terminal und führen 
 ```bash
 curl https://raw.githubusercontent.com/bbrzgruppe/maos_onboarding/refs/heads/main/start-maconboard.sh | sudo bash
 ```
+
+Verwendung des Reset-Scripts:
+
+```bash
+curl https://raw.githubusercontent.com/bbrzgruppe/maos_onboarding/refs/heads/main/check_reset.sh | sudo bash
+```
